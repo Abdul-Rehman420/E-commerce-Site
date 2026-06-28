@@ -1,0 +1,29 @@
+import { products } from "@/data/products";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { ProductCard } from "@/components/ui/ProductCard";
+import { Container } from "@/components/ui/Container";
+import { Button } from "@/components/ui/Button";
+
+export function Bestsellers() {
+  const featured = products.slice(0, 4);
+
+  return (
+    <Container className="pt-24 pb-24">
+      <SectionHeader
+        title="Featured Declarations"
+        subtitle="Designed for the daily walk."
+        viewAllHref="/shop"
+      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+        {featured.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+      <div className="mt-12 md:hidden flex justify-center">
+        <Button href="/shop" variant="outline" className="px-6 py-3">
+          View All Products
+        </Button>
+      </div>
+    </Container>
+  );
+}
