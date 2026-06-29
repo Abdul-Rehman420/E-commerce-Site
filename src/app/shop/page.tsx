@@ -1,15 +1,22 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { products, categories } from "@/data/products";
+import { fetchProducts } from "@/lib/data";
+import { categories } from "@/data/products";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { Container } from "@/components/ui/Container";
+import { Product } from "@/types";
 
 function ShopContent() {
   const searchParams = useSearchParams();
+  const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+
+  useEffect(() => {
+    fetchProducts().then(setProducts);
+  }, []);
 
   const filtered = useMemo(() => {
     let result = products;
@@ -26,7 +33,7 @@ function ShopContent() {
       );
     }
     return result;
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, searchQuery, products]);
 
   return (
     <div className="pt-12 pb-24">

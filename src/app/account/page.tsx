@@ -1,22 +1,33 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/context/WishlistContext";
-import { orders } from "@/data/store";
+import { fetchUserOrders } from "@/lib/data";
 import { formatPrice, formatDate } from "@/lib/utils";
+import { Order } from "@/types";
 
 export default function AccountPage() {
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
+  const router = useRouter();
   const { count } = useWishlist();
-  const userOrders = orders.filter((o) => o.userId === user?.id);
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  useEffect(() => {
+    if (!user) router.replace("/auth/login");
+    else if (user.id) fetchUserOrders(user.id).then(setOrders);
+  }, [user, router]);
+
+  if (!user) return null;
 
   return (
     <div className="pt-12 pb-24 px-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-12">
         <div>
           <h1 className="font-serif text-3xl font-medium text-navy">My Account</h1>
-          <p className="text-sm text-navy/60 mt-1">Welcome back, {user?.name}</p>
+          <p className="text-sm text-navy/60 mt-1">Welcome back, {profile?.name || user.email}</p>
         </div>
         <button onClick={logout} className="text-xs text-navy/50 underline hover:text-navy">Sign Out</button>
       </div>
@@ -27,7 +38,7 @@ export default function AccountPage() {
             <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
           <h3 className="text-sm font-medium text-navy mb-1">Orders</h3>
-          <p className="text-xs text-navy/50">{userOrders.length} order{userOrders.length !== 1 ? "s" : ""}</p>
+          <p className="text-xs text-navy/50">{orders.length} order{orders.length !== 1 ? "s" : ""}</p>
         </Link>
         <Link href="/account/wishlist" className="bg-white border border-navy/10 p-6 hover:border-navy/30 transition-colors">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="2" className="mb-4">
@@ -43,19 +54,19 @@ export default function AccountPage() {
             <path d="M20 8v6M23 11h-6" />
           </svg>
           <h3 className="text-sm font-medium text-navy mb-1">Profile</h3>
-          <p className="text-xs text-navy/50">{user?.email}</p>
+          <p className="text-xs text-navy/50">{user.email}</p>
         </div>
       </div>
 
-      {userOrders.length > 0 && (
+      {orders.length > 0 && (
         <div>
           <h2 className="font-serif text-xl font-medium text-navy mb-6">Recent Orders</h2>
           <div className="space-y-4">
-            {userOrders.slice(0, 3).map((order) => (
+            {orders.slice(0, 3).map((order) => (
               <div key={order.id} className="bg-white border border-navy/10 p-6 flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-navy">{order.id}</p>
-                  <p className="text-xs text-navy/50">{formatDate(order.createdAt)}</p>
+                  <p className="text-xs text-navy/50">{formatDate(order.createdAt ?? "")}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-navy">{formatPrice(order.total)}</p>

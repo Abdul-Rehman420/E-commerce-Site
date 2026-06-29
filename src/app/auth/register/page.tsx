@@ -11,12 +11,13 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirm: "" });
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (form.password !== form.confirm) { setError("Passwords do not match"); return; }
-    if (register(form.name, form.email, form.phone, form.password)) router.push("/account");
-    else setError("Email already registered");
+    const err = await register(form.name, form.email, form.phone, form.password);
+    if (err) setError(err);
+    else router.push("/account");
   };
 
   return (

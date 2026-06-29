@@ -1,14 +1,28 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { notFound } from "next/navigation";
-import { products } from "@/data/products";
+import { fetchProductBySlug, fetchProducts } from "@/lib/data";
 import { ProductDetail } from "@/components/features/ProductDetail";
 import { Container } from "@/components/ui/Container";
 import { ProductCard } from "@/components/ui/ProductCard";
+import { Product } from "@/types";
 
 export default function ProductPage({ params }: { params: { slug: string } }) {
-  const product = products.find((p) => p.slug === params.slug);
-  if (!product) notFound();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [related, setRelated] = useState<Product[]>([]);
 
-  const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
+  useEffect(() => {
+    fetchProductBySlug(params.slug).then((p) => {
+      if (!p) return notFound();
+      setProduct(p);
+      fetchProducts().then((all) =>
+        setRelated(all.filter((r) => r.category === p.category && r.id !== p.id).slice(0, 4))
+      );
+    });
+  }, [params.slug]);
+
+  if (!product) return null;
 
   return (
     <>

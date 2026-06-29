@@ -3,16 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { insertBlogPost } from "@/lib/data";
 
 export default function NewBlogPostPage() {
   const router = useRouter();
   const [form, setForm] = useState({ title: "", slug: "", excerpt: "", content: "", author: "Righteous Threads" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const posts = JSON.parse(localStorage.getItem("rt_blog_posts") || "[]");
-    posts.push({ id: "b" + Date.now(), ...form, image: "https://images.unsplash.com/photo-1522204523234-8729aa6e3d5f?q=80&w=2070&auto=format&fit=crop", tags: [], createdAt: new Date().toISOString(), published: false });
-    localStorage.setItem("rt_blog_posts", JSON.stringify(posts));
+    await insertBlogPost({
+      id: "b" + Date.now(), ...form,
+      image: "https://images.unsplash.com/photo-1522204523234-8729aa6e3d5f?q=80&w=2070&auto=format&fit=crop",
+      tags: [], createdAt: new Date().toISOString(), published: false,
+    });
     router.push("/admin/blog");
   };
 

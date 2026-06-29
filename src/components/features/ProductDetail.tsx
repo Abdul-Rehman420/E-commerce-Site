@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { fetchProductReviews } from "@/lib/data";
 import Image from "next/image";
 import Link from "next/link";
-import { Product } from "@/types";
+import { Product, Review } from "@/types";
 import { formatPrice } from "@/lib/utils";
 import { useCart } from "@/context/CartContext";
 import { AddToWishlist } from "@/components/features/AddToWishlist";
-import { reviews } from "@/data/store";
 
 interface ProductDetailProps {
   product: Product;
@@ -17,9 +17,13 @@ export function ProductDetail({ product }: ProductDetailProps) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
+  const [productReviews, setProductReviews] = useState<Review[]>([]);
   const { addItem } = useCart();
 
-  const productReviews = reviews.filter((r) => r.productId === product.id && r.approved);
+  useEffect(() => {
+    fetchProductReviews(product.id).then(setProductReviews);
+  }, [product.id]);
+
   const avgRating = productReviews.length ? Math.round(productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length) : 0;
 
   return (

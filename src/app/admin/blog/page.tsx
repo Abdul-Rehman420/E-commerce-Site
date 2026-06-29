@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { blogPosts } from "@/data/store";
+import { fetchBlogPosts, toggleBlogPost } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
+import { BlogPost } from "@/types";
 
 export default function AdminBlogPage() {
-  const [list, setList] = useState(blogPosts);
+  const [list, setList] = useState<BlogPost[]>([]);
 
-  const togglePublish = (id: string) => {
+  useEffect(() => { fetchBlogPosts().then(setList); }, []);
+
+  const handleToggle = async (id: string, published: boolean) => {
+    await toggleBlogPost(id, !published);
     setList(list.map((p) => p.id === id ? { ...p, published: !p.published } : p));
   };
 
@@ -32,10 +36,10 @@ export default function AdminBlogPage() {
             {list.map((post) => (
               <tr key={post.id} className="border-b border-navy/5">
                 <td className="py-4 px-4 font-medium text-navy text-sm">{post.title}</td>
-                <td className="py-4 px-4 text-navy/60 text-xs hidden md:table-cell">{formatDate(post.createdAt)}</td>
+                <td className="py-4 px-4 text-navy/60 text-xs hidden md:table-cell">{formatDate(post.createdAt ?? "")}</td>
                 <td className="py-4 px-4 hidden sm:table-cell"><span className={`text-xs ${post.published ? "text-green-600" : "text-navy/40"}`}>{post.published ? "Published" : "Draft"}</span></td>
                 <td className="py-4 px-4 text-right space-x-3">
-                  <button onClick={() => togglePublish(post.id)} className="text-xs text-navy/50 underline hover:text-navy">{post.published ? "Unpublish" : "Publish"}</button>
+                  <button onClick={() => handleToggle(post.id, post.published)} className="text-xs text-navy/50 underline hover:text-navy">{post.published ? "Unpublish" : "Publish"}</button>
                 </td>
               </tr>
             ))}

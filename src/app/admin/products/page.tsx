@@ -1,12 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { products } from "@/data/products";
+import { fetchProducts } from "@/lib/data";
 import { formatPrice } from "@/lib/utils";
+import { Product } from "@/types";
 
 export default function AdminProductsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    fetchProducts().then(setProducts);
+  }, []);
+
   const filtered = products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (

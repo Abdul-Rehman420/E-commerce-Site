@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { formatPrice, generateId } from "@/lib/utils";
+import { insertOrder } from "@/lib/data";
 
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCart();
   const { user } = useAuth();
   const router = useRouter();
-  const [form, setForm] = useState({ fullName: user?.name || "", phone: user?.phone || "", street: "", city: "Lahore", province: "Punjab", zipCode: "" });
+  const [form, setForm] = useState({ fullName: user?.user_metadata?.name || "", phone: user?.user_metadata?.phone || "", street: "", city: "Lahore", province: "Punjab", zipCode: "" });
   const [placed, setPlaced] = useState(false);
   const [discount, setDiscount] = useState(0);
   const [couponCode, setCouponCode] = useState("");
@@ -32,17 +33,16 @@ export default function CheckoutPage() {
     setCouponMsg(`Coupon applied! You saved ${formatPrice(Math.min(disc, total))}`);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPlaced(true);
-    const orders = JSON.parse(localStorage.getItem("rt_orders") || "[]");
-    orders.push({
-      id: "ORD-" + Date.now(), userId: user?.id || "guest", items, total: total - discount, subtotal: total,
-      discount, couponCode, status: "pending", paymentMethod: "cod",
-      shippingAddress: { id: generateId(), userId: user?.id || "guest", ...form, isDefault: true },
-      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), notes: "",
-    });
-    localStorage.setItem("rt_orders", JSON.stringify(orders));
+    const order = {
+      id: "ORD-" + Date.now(), user_id: user?.id || null, items, total: total - discount, subtotal: total,
+      discount, coupon_code: couponCode, status: "pending", payment_method: "cod",
+      shipping_address: { id: generateId(), userId: user?.id || "guest", ...form, isDefault: true },
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(), notes: "",
+    };
+    await insertOrder(order);
     clearCart();
   };
 

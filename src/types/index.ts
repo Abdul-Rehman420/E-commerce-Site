@@ -64,18 +64,18 @@ export interface Address {
 
 export interface Order {
   id: string;
-  userId: string;
+  userId?: string;
   items: CartItem[];
   total: number;
   subtotal: number;
   discount: number;
-  couponCode: string;
+  couponCode?: string;
   status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
-  paymentMethod: "cod";
-  shippingAddress: Address;
-  createdAt: string;
-  updatedAt: string;
-  notes: string;
+  paymentMethod?: string;
+  shippingAddress?: Address;
+  createdAt?: string;
+  updatedAt?: string;
+  notes?: string;
 }
 
 export interface Coupon {
@@ -92,13 +92,17 @@ export interface Coupon {
 
 export interface Review {
   id: string;
-  productId: string;
-  userId: string;
-  userName: string;
+  productId?: string;
+  product_id?: string;
+  userId?: string;
+  user_id?: string;
+  userName?: string;
+  user_name?: string;
   rating: number;
-  title: string;
-  comment: string;
-  createdAt: string;
+  title?: string;
+  comment?: string;
+  createdAt?: string;
+  created_at?: string;
   approved: boolean;
 }
 
@@ -111,6 +115,7 @@ export interface BlogPost {
   image: string;
   author: string;
   tags: string[];
-  createdAt: string;
+  createdAt?: string;
+  created_at?: string;
   published: boolean;
 }

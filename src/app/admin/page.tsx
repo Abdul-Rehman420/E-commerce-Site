@@ -1,14 +1,24 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { StatsCard } from "@/components/admin/StatsCard";
-import { orders } from "@/data/store";
-import { products } from "@/data/products";
+import { fetchOrders, fetchProducts } from "@/lib/data";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
+import { Order, Product } from "@/types";
 
 export default function AdminDashboard() {
-  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetchOrders().then(setOrders);
+    fetchProducts().then(setProducts);
+  }, []);
+
+  const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total), 0);
   const pendingOrders = orders.filter((o) => o.status === "pending" || o.status === "confirmed").length;
+
   return (
     <div>
       <h1 className="font-serif text-3xl font-medium text-navy mb-8">Dashboard</h1>

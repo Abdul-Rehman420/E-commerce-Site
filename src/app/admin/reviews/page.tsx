@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { reviews } from "@/data/store";
+import { useState, useEffect } from "react";
+import { fetchReviews, toggleReviewApproval } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
+import { Review } from "@/types";
 
 export default function AdminReviewsPage() {
-  const [list, setList] = useState(reviews);
+  const [list, setList] = useState<Review[]>([]);
 
-  const toggleApprove = (id: string) => {
+  useEffect(() => { fetchReviews().then(setList); }, []);
+
+  const handleToggle = async (id: string, approved: boolean) => {
+    await toggleReviewApproval(id, !approved);
     setList(list.map((r) => r.id === id ? { ...r, approved: !r.approved } : r));
   };
 
@@ -32,14 +36,14 @@ export default function AdminReviewsPage() {
           <tbody>
             {list.map((review) => (
               <tr key={review.id} className="border-b border-navy/5">
-                <td className="py-4 px-4 text-sm text-navy font-medium">{review.productId}</td>
+                <td className="py-4 px-4 text-sm text-navy font-medium">{review.productId ?? review.product_id}</td>
                 <td className="py-4 px-4 text-sm text-navy/70">{review.userName}</td>
                 <td className="py-4 px-4 text-sm text-gold">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</td>
-                <td className="py-4 px-4 text-xs text-navy/60 hidden md:table-cell max-w-[200px] truncate">{review.comment}</td>
-                <td className="py-4 px-4 text-xs text-navy/50 hidden sm:table-cell">{formatDate(review.createdAt)}</td>
+                <td className="py-4 px-4 text-xs text-navy/60 hidden md:table-cell max-w-[200px] truncate">{review.comment ?? ""}</td>
+                <td className="py-4 px-4 text-xs text-navy/50 hidden sm:table-cell">{formatDate(review.createdAt ?? "")}</td>
                 <td className="py-4 px-4"><span className={`text-xs ${review.approved ? "text-green-600" : "text-navy/40"}`}>{review.approved ? "Approved" : "Pending"}</span></td>
                 <td className="py-4 px-4 text-right">
-                  <button onClick={() => toggleApprove(review.id)} className="text-xs text-navy/50 underline hover:text-navy">{review.approved ? "Unapprove" : "Approve"}</button>
+                  <button onClick={() => handleToggle(review.id, review.approved)} className="text-xs text-navy/50 underline hover:text-navy">{review.approved ? "Unapprove" : "Approve"}</button>
                 </td>
               </tr>
             ))}

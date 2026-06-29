@@ -7,6 +7,7 @@ import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { WhatsAppButton } from "@/components/features/WhatsAppButton";
+import { CartDrawer } from "@/components/features/CartDrawer";
 
 export const metadata: Metadata = {
   title: "Righteous Threads | Wear Your Faith",
@@ -45,6 +46,7 @@ export default function RootLayout({
             <CartProvider>
               <ScriptureBar />
               <Navigation />
+              <CartDrawer />
               <main>{children}</main>
               <Footer />
               <WhatsAppButton />

@@ -1,28 +1,34 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { products } from "@/data/products";
+import { fetchProducts } from "@/lib/data";
 import { useWishlist } from "@/context/WishlistContext";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/utils";
+import { Product } from "@/types";
 
 export default function WishlistPage() {
   const { items, removeFromWishlist } = useWishlist();
   const { addItem } = useCart();
-  const wishlisted = products.filter((p) => items.includes(p.id));
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetchProducts().then((all) => setProducts(all.filter((p) => items.includes(p.id))));
+  }, [items]);
 
   return (
     <div className="pt-12 pb-24 px-6 max-w-5xl mx-auto">
       <Link href="/account" className="text-xs text-navy/50 hover:text-navy mb-6 block">&larr; Back to Account</Link>
       <h1 className="font-serif text-3xl font-medium text-navy mb-10">My Wishlist</h1>
-      {wishlisted.length === 0 ? (
+      {products.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-sm text-navy/50 mb-4">Your wishlist is empty</p>
           <Link href="/shop" className="inline-flex px-6 py-3 bg-navy text-beige text-sm font-medium">Browse Products</Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {wishlisted.map((product) => (
+          {products.map((product) => (
             <div key={product.id} className="bg-white border border-navy/10 p-4">
               <div className="relative aspect-[3/4] bg-navy/5 mb-4 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

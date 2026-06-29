@@ -3,29 +3,24 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { products } from "@/data/products";
+import { updateProduct, deleteProduct } from "@/lib/data";
+import { products as staticProducts } from "@/data/products";
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const product = products.find((p) => p.id === params.id);
+  const product = staticProducts.find((p) => p.id === params.id);
   const [form, setForm] = useState({ name: product?.name || "", price: product?.price?.toString() || "", description: product?.description || "", stock: (product?.stock ?? 10).toString(), verse: product?.verse || "", verseRef: product?.verseRef || "" });
 
   if (!product) return <p className="text-sm text-navy/50">Product not found</p>;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const existing = JSON.parse(localStorage.getItem("rt_admin_products") || "[]");
-    const idx = existing.findIndex((p: { id: string }) => p.id === params.id);
-    if (idx >= 0) {
-      existing[idx] = { ...existing[idx], ...form, price: Number(form.price), stock: Number(form.stock) };
-      localStorage.setItem("rt_admin_products", JSON.stringify(existing));
-    }
+    await updateProduct(params.id, { ...form, price: Number(form.price), stock: Number(form.stock) });
     router.push("/admin/products");
   };
 
-  const handleDelete = () => {
-    const existing = JSON.parse(localStorage.getItem("rt_admin_products") || "[]");
-    localStorage.setItem("rt_admin_products", JSON.stringify(existing.filter((p: { id: string }) => p.id !== params.id)));
+  const handleDelete = async () => {
+    await deleteProduct(params.id);
     router.push("/admin/products");
   };
 

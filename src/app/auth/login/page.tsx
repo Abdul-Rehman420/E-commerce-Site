@@ -12,11 +12,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (login(email, password)) router.push("/account");
-    else setError("Invalid email or password");
+    const err = await login(email, password);
+    if (err) setError(err);
+    else router.push("/account");
   };
 
   return (

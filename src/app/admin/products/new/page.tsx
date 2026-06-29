@@ -3,16 +3,23 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { insertProduct } from "@/lib/data";
 
 export default function NewProductPage() {
   const router = useRouter();
   const [form, setForm] = useState({ name: "", slug: "", price: "", description: "", category: "tees", stock: "10", verse: "", verseRef: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const products = JSON.parse(localStorage.getItem("rt_admin_products") || "[]");
-    products.push({ id: "p" + Date.now(), ...form, price: Number(form.price), stock: Number(form.stock), images: ["https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1974&auto=format&fit=crop"], colors: [{ color: "Default", colorHex: "#1A1A2E", inStock: true }], sizes: [{ label: "M", inStock: true }], createdAt: new Date().toISOString() });
-    localStorage.setItem("rt_admin_products", JSON.stringify(products));
+    await insertProduct({
+      id: "p" + Date.now(), slug: form.slug, name: form.name, price: Number(form.price),
+      description: form.description, verse: form.verse, verseRef: form.verseRef,
+      category: form.category, collection: "", stock: Number(form.stock),
+      images: ["https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1974&auto=format&fit=crop"],
+      colors: [{ color: "Default", colorHex: "#1A1A2E", inStock: true }],
+      sizes: [{ label: "M", inStock: true }],
+      createdAt: new Date().toISOString(),
+    });
     router.push("/admin/products");
   };
 

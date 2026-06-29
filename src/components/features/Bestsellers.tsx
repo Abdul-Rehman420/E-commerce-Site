@@ -1,11 +1,17 @@
-import { products } from "@/data/products";
+"use client";
+
+import { useState, useEffect } from "react";
+import { fetchProducts } from "@/lib/data";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
+import { Product } from "@/types";
 
 export function Bestsellers() {
-  const featured = products.slice(0, 4);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => { fetchProducts().then((all) => setProducts(all.slice(0, 4))); }, []);
 
   return (
     <Container className="pt-24 pb-24">
@@ -15,7 +21,7 @@ export function Bestsellers() {
         viewAllHref="/shop"
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
-        {featured.map((product) => (
+        {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

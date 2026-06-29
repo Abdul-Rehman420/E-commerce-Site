@@ -1,23 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { coupons } from "@/data/store";
+import { useState, useEffect } from "react";
+import { fetchCoupons, insertCoupon, toggleCouponStatus } from "@/lib/data";
 import { formatPrice, generateId } from "@/lib/utils";
+import { Coupon } from "@/types";
 
 export default function AdminCouponsPage() {
-  const [list, setList] = useState(coupons);
+  const [list, setList] = useState<Coupon[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ code: "", type: "percentage" as "percentage"|"fixed", value: "", minOrder: "", usageLimit: "" });
 
-  const handleAdd = (e: React.FormEvent) => {
+  useEffect(() => { fetchCoupons().then(setList); }, []);
+
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newCoupon = { id: generateId(), code: form.code.toUpperCase(), type: form.type, value: Number(form.value), minOrder: Number(form.minOrder), usageLimit: Number(form.usageLimit), usedCount: 0, expiresAt: "2027-12-31", active: true };
+    const newCoupon: Coupon = { id: generateId(), code: form.code.toUpperCase(), type: form.type, value: Number(form.value), minOrder: Number(form.minOrder), usageLimit: Number(form.usageLimit), usedCount: 0, expiresAt: "2027-12-31", active: true };
+    await insertCoupon(newCoupon);
     setList([...list, newCoupon]);
     setForm({ code: "", type: "percentage", value: "", minOrder: "", usageLimit: "" });
     setShowForm(false);
   };
 
-  const toggleActive = (id: string) => {
+  const handleToggle = async (id: string, active: boolean) => {
+    await toggleCouponStatus(id, !active);
     setList(list.map((c) => c.id === id ? { ...c, active: !c.active } : c));
   };
 
@@ -60,7 +65,7 @@ export default function AdminCouponsPage() {
                 <td className="py-4 px-4 text-navy/60 text-xs hidden md:table-cell">{c.usedCount}/{c.usageLimit}</td>
                 <td className="py-4 px-4 hidden sm:table-cell"><span className={`text-xs ${c.active ? "text-green-600" : "text-red-500"}`}>{c.active ? "Active" : "Inactive"}</span></td>
                 <td className="py-4 px-4 text-right">
-                  <button onClick={() => toggleActive(c.id)} className="text-xs text-navy/50 underline hover:text-navy">{c.active ? "Deactivate" : "Activate"}</button>
+                  <button onClick={() => handleToggle(c.id, c.active)} className="text-xs text-navy/50 underline hover:text-navy">{c.active ? "Deactivate" : "Activate"}</button>
                 </td>
               </tr>
             ))}

@@ -9,10 +9,10 @@ export default function RecoverPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (recoverPassword(email)) setSent(true);
-    else setSent(true);
+    await recoverPassword(email);
+    setSent(true);
   };
 
   return (
