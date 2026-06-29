@@ -241,7 +241,7 @@ insert into public.coupons (id, code, type, value, min_order, usage_limit, used_
 on conflict (id) do nothing;
 
 insert into public.reviews (id, product_id, user_id, user_name, rating, title, comment, approved, created_at) values
-('r1', 'armor-hoodie', '00000000-0000-0000-0000-000000000000', 'Ayesha K.', 5, 'Beautiful quality!', 'The fabric is so soft and the design is beautiful. Definitely buying more!', true, '2026-06-10'),
-('r2', 'armor-hoodie', '00000000-0000-0000-0000-000000000000', 'Fatima R.', 4, 'Great hoodie', 'Love the message and the fit. Slightly large but that''s the style.', true, '2026-06-05'),
-('r3', 'grace-alone-tee', '00000000-0000-0000-0000-000000000000', 'Zainab A.', 5, 'Perfect everyday tee', 'I wear this everywhere. Gets so many compliments!', true, '2026-05-28')
+('r1', 'armor-hoodie', null, 'Ayesha K.', 5, 'Beautiful quality!', 'The fabric is so soft and the design is beautiful. Definitely buying more!', true, '2026-06-10'),
+('r2', 'armor-hoodie', null, 'Fatima R.', 4, 'Great hoodie', 'Love the message and the fit. Slightly large but that''s the style.', true, '2026-06-05'),
+('r3', 'grace-alone-tee', null, 'Zainab A.', 5, 'Perfect everyday tee', 'I wear this everywhere. Gets so many compliments!', true, '2026-05-28')
 on conflict (id) do nothing;

@@ -1,13 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 import { insertProduct } from "@/lib/data";
 
 export default function NewProductPage() {
   const router = useRouter();
   const [form, setForm] = useState({ name: "", slug: "", price: "", description: "", category: "tees", stock: "10", verse: "", verseRef: "" });
+  const [userId, setUserId] = useState<string | null>(null);
+  const [admin, setAdmin] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUserId(session.user.id);
+        supabase.from("admins").select("user_id").eq("user_id", session.user.id).then(({ data }) => {
+          if (data?.length) setAdmin(true);
+        });
+      }
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +39,11 @@ export default function NewProductPage() {
 
   return (
     <div className="max-w-2xl">
+      {!admin && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3 mb-4">
+          Not authenticated as admin. User ID: {userId || "none"} | Admin: {String(admin)}
+        </div>
+      )}
       <Link href="/admin/products" className="text-xs text-navy/50 hover:text-navy mb-6 block">&larr; Back to Products</Link>
       <h1 className="font-serif text-3xl font-medium text-navy mb-8">New Product</h1>
       <form onSubmit={handleSubmit} className="space-y-5">

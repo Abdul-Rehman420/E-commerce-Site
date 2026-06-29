@@ -4,6 +4,28 @@ import { products as staticProducts } from "@/data/products";
 import { blogPosts as staticBlogPosts, reviews as staticReviews, coupons as staticCoupons } from "@/data/store";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapProduct(p: Record<string, any>): Product {
+  return {
+    ...p,
+    verseRef: p.verse_ref,
+    badgeColor: p.badge_color,
+    createdAt: p.created_at,
+  } as Product;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toSnakeProduct(p: Record<string, any>): Record<string, any> {
+  const { verseRef, badgeColor, createdAt, ...rest } = p;
+  return { ...rest, verse_ref: verseRef, badge_color: badgeColor, created_at: createdAt };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toSnakeOrder(o: Record<string, any>): Record<string, any> {
+  const { userId, couponCode, paymentMethod, shippingAddress, createdAt, updatedAt, ...rest } = o;
+  return { ...rest, user_id: userId, coupon_code: couponCode, payment_method: paymentMethod, shipping_address: shippingAddress, created_at: createdAt, updated_at: updatedAt };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapOrder(o: Record<string, any>): Order {
   return {
     ...o,
@@ -22,6 +44,12 @@ function mapBlogPost(p: Record<string, any>): BlogPost {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toSnakeBlogPost(p: Record<string, any>): Record<string, any> {
+  const { createdAt, ...rest } = p;
+  return { ...rest, created_at: createdAt };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapReview(r: Record<string, any>): Review {
   return {
     ...r,
@@ -35,7 +63,7 @@ function mapReview(r: Record<string, any>): Review {
 export async function fetchProducts(): Promise<Product[]> {
   try {
     const { data } = await supabase.from("products").select("*");
-    return (data as Product[]) ?? fallbackProducts();
+    return (data ?? []).length ? (data ?? []).map(mapProduct) : fallbackProducts();
   } catch {
     return fallbackProducts();
   }
@@ -48,7 +76,8 @@ function fallbackProducts(): Product[] {
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
   try {
     const { data } = await supabase.from("products").select("*").eq("slug", slug).single();
-    return (data as Product) ?? staticProducts.find((p) => p.slug === slug) ?? null;
+    if (data) return mapProduct(data);
+    return staticProducts.find((p) => p.slug === slug) ?? null;
   } catch {
     return staticProducts.find((p) => p.slug === slug) ?? null;
   }
@@ -73,8 +102,9 @@ export async function fetchUserOrders(userId: string): Promise<Order[]> {
 }
 
 export async function insertOrder(order: Record<string, unknown>): Promise<boolean> {
+  const snakeOrder = toSnakeOrder(order);
   try {
-    const { error } = await supabase.from("orders").insert(order);
+    const { error } = await supabase.from("orders").insert(snakeOrder);
     return !error;
   } catch {
     return false;
@@ -110,7 +140,9 @@ export async function fetchPublishedPosts(): Promise<BlogPost[]> {
 
 export async function insertBlogPost(post: BlogPost): Promise<boolean> {
   try {
-    const { error } = await supabase.from("blog_posts").insert(post);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const snake = toSnakeBlogPost(post as any);
+    const { error } = await supabase.from("blog_posts").insert(snake);
     return !error;
   } catch {
     return false;
@@ -128,16 +160,22 @@ export async function toggleBlogPost(id: string, published: boolean): Promise<bo
 
 export async function insertProduct(product: Product): Promise<boolean> {
   try {
-    const { error } = await supabase.from("products").insert(product);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const snake = toSnakeProduct(product as any);
+    const { error } = await supabase.from("products").insert(snake);
+    if (error) console.error("insertProduct error:", error);
     return !error;
-  } catch {
+  } catch (e) {
+    console.error("insertProduct catch:", e);
     return false;
   }
 }
 
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<boolean> {
   try {
-    const { error } = await supabase.from("products").update(updates).eq("id", id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const snake = toSnakeProduct(updates as any);
+    const { error } = await supabase.from("products").update(snake).eq("id", id);
     return !error;
   } catch {
     return false;
