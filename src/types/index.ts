@@ -72,6 +72,7 @@ export interface Order {
   couponCode?: string;
   status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
   paymentMethod?: string;
+  paymentStatus?: "pending" | "paid" | "failed";
   shippingAddress?: Address;
   createdAt?: string;
   updatedAt?: string;

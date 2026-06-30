@@ -35,6 +35,7 @@ create table if not exists public.orders (
   coupon_code text default '',
   status text default 'pending',
   payment_method text default 'cod',
+  payment_status text default 'pending',
   shipping_address jsonb not null,
   notes text default '',
   created_at timestamp default now(),

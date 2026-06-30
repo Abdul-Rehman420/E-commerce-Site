@@ -21,8 +21,8 @@ function toSnakeProduct(p: Record<string, any>): Record<string, any> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toSnakeOrder(o: Record<string, any>): Record<string, any> {
-  const { userId, couponCode, paymentMethod, shippingAddress, createdAt, updatedAt, ...rest } = o;
-  return { ...rest, user_id: userId, coupon_code: couponCode, payment_method: paymentMethod, shipping_address: shippingAddress, created_at: createdAt, updated_at: updatedAt };
+  const { userId, couponCode, paymentMethod, paymentStatus, shippingAddress, createdAt, updatedAt, ...rest } = o;
+  return { ...rest, user_id: userId, coupon_code: couponCode, payment_method: paymentMethod, payment_status: paymentStatus, shipping_address: shippingAddress, created_at: createdAt, updated_at: updatedAt };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,6 +32,7 @@ function mapOrder(o: Record<string, any>): Order {
     userId: o.user_id,
     couponCode: o.coupon_code,
     paymentMethod: o.payment_method,
+    paymentStatus: o.payment_status,
     shippingAddress: o.shipping_address,
     createdAt: o.created_at,
     updatedAt: o.updated_at,
@@ -114,6 +115,15 @@ export async function insertOrder(order: Record<string, unknown>): Promise<boole
 export async function updateOrderStatus(id: string, status: string): Promise<boolean> {
   try {
     const { error } = await supabase.from("orders").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function updatePaymentStatus(id: string, paymentStatus: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.from("orders").update({ payment_status: paymentStatus, updated_at: new Date().toISOString() }).eq("id", id);
     return !error;
   } catch {
     return false;

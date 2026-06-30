@@ -29,8 +29,16 @@ export default function OrdersPage() {
                 <div>
                   <p className="text-sm font-medium text-navy">{order.id}</p>
                   <p className="text-xs text-navy/50">{formatDate(order.createdAt ?? "")}</p>
+                  <p className="text-[0.6rem] uppercase tracking-wide text-navy/40 mt-0.5">{order.paymentMethod === "bank_transfer" ? "Bank Transfer" : "COD"}</p>
                 </div>
-                <span className="text-xs uppercase tracking-wide font-medium text-navy/60">{order.status}</span>
+                <div className="text-right">
+                  <span className="text-xs uppercase tracking-wide font-medium text-navy/60">{order.status}</span>
+                  {order.paymentMethod === "bank_transfer" && (
+                    <p className={`text-[0.6rem] uppercase tracking-wide mt-0.5 ${order.paymentStatus === "paid" ? "text-green-600" : "text-amber-600"}`}>
+                      {order.paymentStatus === "paid" ? "Paid" : "Payment Pending"}
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="border-t border-navy/10 pt-4">
                 {order.items.map((item, i: number) => (

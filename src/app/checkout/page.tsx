@@ -7,11 +7,19 @@ import { useAuth } from "@/context/AuthContext";
 import { formatPrice, generateId } from "@/lib/utils";
 import { insertOrder } from "@/lib/data";
 
+const BANK_DETAILS = {
+  bank: process.env.NEXT_PUBLIC_BANK_NAME || "Meezan Bank",
+  accountTitle: process.env.NEXT_PUBLIC_BANK_ACCOUNT_TITLE || "Righteous Threads",
+  accountNumber: process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER || "XXXX-XXXXXXX-XXX",
+  iban: process.env.NEXT_PUBLIC_BANK_IBAN || "PK36MEZNXXXXXXXXXXXXXX",
+};
+
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCart();
   const { user } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({ fullName: user?.user_metadata?.name || "", phone: user?.user_metadata?.phone || "", street: "", city: "Lahore", province: "Punjab", zipCode: "" });
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "bank_transfer">("cod");
   const [placed, setPlaced] = useState(false);
   const [discount, setDiscount] = useState(0);
   const [couponCode, setCouponCode] = useState("");
@@ -37,10 +45,11 @@ export default function CheckoutPage() {
     e.preventDefault();
     setPlaced(true);
     const order = {
-      id: "ORD-" + Date.now(), user_id: user?.id || null, items, total: total - discount, subtotal: total,
-      discount, coupon_code: couponCode, status: "pending", payment_method: "cod",
-      shipping_address: { id: generateId(), userId: user?.id || "guest", ...form, isDefault: true },
-      created_at: new Date().toISOString(), updated_at: new Date().toISOString(), notes: "",
+      id: "ORD-" + Date.now(), userId: user?.id || null, items, total: total - discount, subtotal: total,
+      discount, couponCode: couponCode, status: "pending", paymentMethod,
+      paymentStatus: "pending",
+      shippingAddress: { id: generateId(), userId: user?.id || "guest", ...form, isDefault: true },
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), notes: "",
     };
     await insertOrder(order);
     clearCart();
@@ -53,7 +62,19 @@ export default function CheckoutPage() {
           <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
         </svg>
         <h1 className="font-serif text-3xl font-medium text-navy mb-4">Order Placed!</h1>
-        <p className="text-sm text-navy/60 mb-8">Thank you for your order. You&apos;ll pay <strong>{formatPrice(total - discount)}</strong> on delivery via COD.</p>
+        {paymentMethod === "cod" ? (
+          <p className="text-sm text-navy/60 mb-8">Thank you for your order. You&apos;ll pay <strong>{formatPrice(total - discount)}</strong> on delivery via COD.</p>
+        ) : (
+          <div className="text-left bg-white border border-navy/10 p-6 mb-8 space-y-2">
+            <p className="text-sm font-medium text-navy mb-3">Please transfer the amount to:</p>
+            <p className="text-sm text-navy/70"><strong>Bank:</strong> {BANK_DETAILS.bank}</p>
+            <p className="text-sm text-navy/70"><strong>Account Title:</strong> {BANK_DETAILS.accountTitle}</p>
+            <p className="text-sm text-navy/70"><strong>Account No:</strong> {BANK_DETAILS.accountNumber}</p>
+            <p className="text-sm text-navy/70"><strong>IBAN:</strong> {BANK_DETAILS.iban}</p>
+            <p className="text-sm text-navy/70"><strong>Amount:</strong> {formatPrice(total - discount)}</p>
+            <p className="text-xs text-navy/50 mt-3">Your order will be confirmed once payment is verified. You will be contacted via WhatsApp for confirmation.</p>
+          </div>
+        )}
         <button onClick={() => router.push("/shop")} className="bg-navy text-beige px-8 py-3 text-sm font-medium hover:bg-navy/90 transition-colors">Continue Shopping</button>
       </div>
     );
@@ -74,12 +95,37 @@ export default function CheckoutPage() {
                 <input type="text" required value={form[f]} onChange={(e) => setForm({...form, [f]: e.target.value})} className="w-full border border-navy/20 px-4 py-3 text-sm bg-transparent text-navy focus:outline-none focus:border-navy" />
               </div>
             ))}
+
             <div className="pt-4">
-              <div className="flex items-center gap-3 mb-6 p-4 bg-navy/5">
-                <input type="radio" checked readOnly className="accent-navy" />
-                <span className="text-sm text-navy">Cash on Delivery (COD)</span>
-              </div>
-              <button type="submit" className="w-full bg-navy text-beige py-3.5 text-sm font-medium tracking-wide hover:bg-navy/90 transition-colors">Place Order - Pay {formatPrice(total - discount)} on Delivery</button>
+              <h3 className="text-sm font-medium text-navy mb-3">Payment Method</h3>
+              <label className={`flex items-center gap-3 p-4 mb-3 border cursor-pointer transition-colors ${paymentMethod === "cod" ? "border-navy bg-navy/5" : "border-navy/20 hover:border-navy/40"}`}>
+                <input type="radio" name="payment" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} className="accent-navy" />
+                <div>
+                  <p className="text-sm font-medium text-navy">Cash on Delivery (COD)</p>
+                  <p className="text-xs text-navy/50">Pay when you receive</p>
+                </div>
+              </label>
+              <label className={`flex items-center gap-3 p-4 mb-6 border cursor-pointer transition-colors ${paymentMethod === "bank_transfer" ? "border-navy bg-navy/5" : "border-navy/20 hover:border-navy/40"}`}>
+                <input type="radio" name="payment" checked={paymentMethod === "bank_transfer"} onChange={() => setPaymentMethod("bank_transfer")} className="accent-navy" />
+                <div>
+                  <p className="text-sm font-medium text-navy">Bank Transfer</p>
+                  <p className="text-xs text-navy/50">Pay via Meezan Bank</p>
+                </div>
+              </label>
+
+              {paymentMethod === "bank_transfer" && (
+                <div className="bg-navy/[0.03] border border-navy/10 p-4 mb-6 text-xs space-y-1 text-navy/70">
+                  <p className="font-medium text-navy mb-2">Bank Account Details:</p>
+                  <p>Bank: {BANK_DETAILS.bank}</p>
+                  <p>Account Title: {BANK_DETAILS.accountTitle}</p>
+                  <p>Account No: {BANK_DETAILS.accountNumber}</p>
+                  <p>IBAN: {BANK_DETAILS.iban}</p>
+                </div>
+              )}
+
+              <button type="submit" className="w-full bg-navy text-beige py-3.5 text-sm font-medium tracking-wide hover:bg-navy/90 transition-colors">
+                {paymentMethod === "cod" ? `Place Order - Pay ${formatPrice(total - discount)} on Delivery` : `Place Order - Pay ${formatPrice(total - discount)} via Bank Transfer`}
+              </button>
             </div>
           </form>
 
